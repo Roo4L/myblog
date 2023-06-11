@@ -1,11 +1,13 @@
 ---
 title: "Invisible USB Leak on Intel SoC"
 date: 2023-06-08T10:34:11+03:00
-draft: true
+resources:
+    - src: ./_resources/csme_in_southbridge_arch.png
+      title: CSME place in chipset architecture
+draft: false
 ---
-# Invisible USB Leak on Intel SoC
 
-What if I tell that there could be a hidden side channel on your favorite Intel SoC or motherboard with Intel's chipset? Well, if you are an experienced security dev, you might just say "I know", cause the possibility of such channel has been advertised long enough: ever since the magic piece of tech a.k.a. Intel ME has been announced. But if it happens that you've never heard of such things as Intel ME and Intel CS(M)E take a comfy chair and join the magical word of Intel Chipset technologies. For those who are scary security analysts indeed, here it the quick list of topics I gonna go through the article:
+What if I tell that there could be a hidden side channel on your favorite Intel SoC or motherboard with Intel's chipset? Well, if you are an experienced security dev, you might just say "I know", cause the possibility of such channel has been advertised long enough: ever since the magic piece of tech a.k.a. Intel ME has been announced. But if it happens that you've never heard of such things as Intel ME and Intel CS(M)E, take a comfy chair and join the magical word of Intel Chipset technologies. For those who are scary security analysts indeed, here is the quick list of topics I gonna go through the article:
 
 - What is Intel ME and what is it for
 - Known security issues of Intel ME
@@ -15,7 +17,7 @@ What if I tell that there could be a hidden side channel on your favorite Intel 
 
 ## So, What is Intel ME?
 
-Putting it simply, Intel Management Engine (Intel ME) is a piece of software and hardware embedded in Intel SoCs and chipsets in desire to provide special management capabilities (like remote management by Intel AMT) and implement a couple of security techs. Essentially, it is a separate processor full-pledged x86 processor on your motherboard or SoC capable of interacting outer world on it's own. It powers on during as soon as motherboard is powered and operates even when the CPU is down.
+Putting it simply, Intel Management Engine (Intel ME) is a piece of software and hardware embedded in Intel SoCs and chipsets in desire to provide special management capabilities (like remote management by Intel AMT) and implement a couple of security techs. Essentially, it is a separate full-pledged x86 processor on your motherboard or SoC capable of interacting with outer world on it's own. It turns on as soon as motherboard is powered and operates even when the CPU is down.
 
 ![CSME place in chipset architecture](./_resources/csme_in_southbridge_arch.png)
 
@@ -27,11 +29,11 @@ Living the name-dropping aside, Intel ME is quite a powerful tech as one may not
 
 ![PT discusses whether to release PoC for Skylake or Apollolake](./_resources/pt_meme.png)
 
-One of most significant among this many "others" were Positive Technologies - cybersecurity development company from Russia. A couple of there researchers spent years trying to investigate and describe the architecture of Intel ME. During such a wonderful journey they managed to decipher the configuration files of Intel ME bundled with debug software, described Intel ME Filesystem, modified debug software to allow support of Intel ME, and, last but not least, **hacked the Intel ME**.
+One of most significant among this many "others" were Positive Technologies - cybersecurity development company from Russia. A couple of their researchers spent years trying to investigate and describe the architecture of Intel ME. During such a wonderful journey they managed to decipher the configuration files of Intel ME bundled with debug software, described Intel ME Filesystem, modified debug software to allow support of Intel ME, and, last but not least, **hacked the Intel ME**.
 
-On Black Hat Europe 2017 Positive Technologies [presents](https://youtu.be/9fhNokIgBMU) a description of INTEL-SA-0086 - a vulnerability inside Intel ME allowing to obtain high-privileged debug access to Intel ME. Maxim Goryachy and Mark Ermolov present a demonstration of obtaining such access on Skylake platform and modifying video output on every boot stage using it. Quite impressive, to be honest.
+On Black Hat Europe 2017 Positive Technologies [presented](https://youtu.be/9fhNokIgBMU) a description of INTEL-SA-0086 - a vulnerability inside Intel ME allowing to obtain high-privileged debug access to Intel ME. Maxim Goryachy and Mark Ermolov presented a demonstration of obtaining such access on Skylake platform and modifying video output on every boot stage using it. Quite impressive, to be honest.
 
-Later, they release a [PoC for Apollake](https://github.com/ptresearch/IntelTXE-PoC) platform with instructions how to reproduce the issue. It is quite interesting why PT demonstrates the PoC for Skylake on Black Hat, but later releases the PoC for Apollolake only. I suppose meme above explains it all.
+Later, they released a [PoC for Apollake](https://github.com/ptresearch/IntelTXE-PoC) platform with instructions how to reproduce the issue. It is quite interesting why PT demonstrated the PoC for Skylake on Black Hat, but later released the PoC for Apollolake only. I suppose meme above explains it all.
 
 Positive technologies published a lot of intel about Intel ME (excuse me playing upon words) describing which would need another article. Summing it up, Positive Techonologies let the community to take a closer look at Intel ME on its own. Thanks, folks.
 
@@ -48,12 +50,14 @@ Despite kakaroto describing the idea behind MITM attack very clearly, he didn't 
 ## It's my turn to act
 
 I've come to the supervisor of mine asking for a theme for thesis work, when he suggested me continue the investigation of Intel ME quirks. It took us a while to repeat the PoC presented by Positive Technologies. Kudos to the supervisor: I might got stuck there forever if not for him.
+
 Bachelor thesis requires one to solve an engineering task so we've decided to create a dataleak channel through Ethernet connection. This requires to obtain access to GbE which I finally failed to do on mine board (GB-BPCE-3350). Later I've discovered notes in Intel Specification for Intel Celeron Series N that sideband channel seem to have no access to devices from other buses except 0. Unfortunately, GbE on GB-BPCE-3350 is located on a separate bus (2), which might be the reason why I failed to address it.
+
 Nevertheless, the task has been set already, so there was no way back. Thus, it was decided to organize leak through USB channel.
 
 ## Lets stop speaking and make a PoC instead
 
-As I said before, kakaroto has only provided basic data structures and interfaces to interact with Host Controller (HC) registers. Therefore, I was doomed to implement USB stack from the very bottom.
+As I said before, KaKaRoTo has only provided basic data structures and interfaces to interact with Host Controller (HC) registers. Therefore, I was doomed to implement USB stack from the very bottom.
 
 To make the task doable in a time of one semester, I had to cut corners times to times. So lets announce a couple of assumptions about USB stack to be implemented:
 
@@ -95,7 +99,7 @@ The process is illustrated in the pics below.
 ![Address Device - transition to Slot Addressed state](./_resources/xhci_rh_poll_2.png)
 ![Configuring endpoints - Slot Configured state](./_resources/xhci_rh_poll_3.png)
 
-Actually, there is a little lie. Despite me translating configuration stage code on python, I've never found enough time to test it properly. So I've replaced it with a hardcode which configures endpoints specific to my exact Arduino Nano. I have [an issue](https://github.com/Roo4L/ipclib/issues/3) in ipclib repository which references this exact issue. This might help one to notice the hardcode inside, but I suppose I would never fix it since I'm done here.
+Actually, there is a little lie. Despite me translating configuration stage code on python, I've never found enough time to test it properly. So I've replaced it with a hardcode which configures endpoints specific to my exact Arduino Nano. I have [an issue](https://github.com/Roo4L/ipclib/issues/3) in ipclib repository which references this exact problem. This might help one to notice the hardcode inside, but I suppose I would never fix it since I'm done here.
 
 ### Initializing Device driver
 
