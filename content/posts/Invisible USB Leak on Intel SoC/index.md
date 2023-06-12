@@ -7,7 +7,7 @@ resources:
 draft: false
 ---
 
-What if I tell that there could be a hidden side channel on your favorite Intel SoC or motherboard with Intel's chipset? Well, if you are an experienced security dev, you might just say "I know", cause the possibility of such channel has been advertised long enough: ever since the magic piece of tech a.k.a. Intel ME has been announced. But if it happens that you've never heard of such things as Intel ME and Intel CS(M)E, take a comfy chair and join the magical word of Intel Chipset technologies. For those who are scary security analysts indeed, here is the quick list of topics I gonna go through the article:
+What if I tell that there could be a hidden side channel on your favorite Intel SoC or motherboard with Intel's chipset? Well, if you are an experienced security dev, you might just say "I know", cause the possibility of such channel has been advertised long enough: ever since the magic piece of tech a.k.a. Intel ME has been announced. But if it happens that you've never heard of such things as Intel ME and Intel CS(M)E, take a comfy chair and join the magical world of Intel Chipset technologies. For those who are scary security analysts indeed, here is the quick list of topics I gonna go through the article:
 
 - What is Intel ME and what is it for
 - Known security issues of Intel ME
